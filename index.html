@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Vereinskasse</title>
+<style>
+:root{--bg:#f4f5f7;--card:#fff;--txt:#1f2937;--muted:#6b7280;--line:#d1d5db;--accent:#2563eb;--danger:#b91c1c;--ok:#047857;--group:#7c3aed;--club:#0f766e}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--txt)}button,input,select{font:inherit}button{cursor:pointer}.wrap{max-width:1100px;margin:0 auto;padding:12px}.top{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-bottom:12px}.top h1{font-size:22px;margin:0}.nav{display:flex;gap:6px;flex-wrap:wrap}.nav button{border:0;background:#e5e7eb;padding:10px 12px;border-radius:10px}.nav button.active{background:var(--accent);color:#fff}.panel{display:none}.panel.active{display:block}.grid{display:grid;grid-template-columns:1.6fr 1fr;gap:12px}.card{background:var(--card);border-radius:14px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,.08)}.items{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.item{border:0;border-radius:14px;padding:16px 10px;min-height:86px;background:#eef2ff;color:#111827;font-weight:700}.item small{display:block;font-weight:500;color:#4b5563;margin-top:4px}.item.group{background:#f3e8ff}.item.club{background:#ccfbf1}.cart-row,.stat-row,.receipt-row{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid #eee}.qty{display:flex;align-items:center;gap:6px}.qty button{width:34px;height:34px;border:0;border-radius:8px;background:#e5e7eb}.big{font-size:26px;font-weight:800}.muted{color:var(--muted);font-size:13px}.totals{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}.totalbox{padding:10px;border-radius:10px;background:#f9fafb}.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.actions button,.primary,.danger,.ghost{border:0;border-radius:10px;padding:12px}.primary{background:var(--accent);color:#fff;font-weight:700}.danger{background:#fee2e2;color:var(--danger)}.ghost{background:#e5e7eb}.pay{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}.pay input{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;font-size:18px}.change{padding:10px;border-radius:10px;background:#ecfdf5;color:var(--ok);font-weight:800}.section-title{font-size:18px;font-weight:800;margin:2px 0 10px}.form-grid{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px}.form-grid input,.form-grid select{padding:10px;border:1px solid var(--line);border-radius:8px}.list{max-height:65vh;overflow:auto}.receipt{border:1px solid #e5e7eb;border-radius:10px;padding:10px;margin-bottom:8px}.receipt.storno{opacity:.6;background:#fef2f2}.receipt-head{display:flex;justify-content:space-between;gap:8px}.receipt-actions{display:flex;gap:6px;margin-top:8px}.receipt-actions button{padding:8px 10px;border:0;border-radius:8px}.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}.kpi .card{padding:10px}.kpi strong{display:block;font-size:22px}.backup{display:grid;grid-template-columns:1fr 1fr;gap:10px}.backup button,.backup label{display:block;text-align:center;padding:14px;border-radius:10px;background:#e5e7eb;border:0}.backup input[type=file]{display:none}.note{background:#fffbeb;border:1px solid #fde68a;padding:10px;border-radius:10px;font-size:13px;margin-top:10px}.footer{font-size:12px;color:var(--muted);text-align:center;margin:12px 0}.pill{display:inline-block;padding:2px 7px;border-radius:999px;font-size:11px;background:#e5e7eb}.pill.group{background:#f3e8ff}.pill.club{background:#ccfbf1}
+@media(max-width:800px){.grid{grid-template-columns:1fr}.items{grid-template-columns:repeat(2,1fr)}.kpi{grid-template-columns:1fr 1fr}.form-grid{grid-template-columns:1fr 1fr}.form-grid button{grid-column:span 2}.backup{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <h1>Vereinskasse</h1>
+    <div class="muted" id="statusText"></div>
+  </div>
+  <div class="nav">
+    <button data-tab="sale" class="active">Verkauf</button>
+    <button data-tab="receipts">Bons</button>
+    <button data-tab="stats">Statistik</button>
+    <button data-tab="items">Artikel</button>
+    <button data-tab="handover">Übergabe</button>
+  </div>
+
+  <section id="sale" class="panel active">
+    <div class="grid">
+      <div class="card">
+        <div class="section-title">Artikel</div>
+        <div id="itemButtons" class="items"></div>
+      </div>
+      <div class="card">
+        <div class="section-title">Aktueller Bon</div>
+        <div id="cart"></div>
+        <div class="totals">
+          <div class="totalbox"><span class="muted">Gruppenkasse</span><div id="groupTotal">0,00 €</div></div>
+          <div class="totalbox"><span class="muted">Vereinskasse</span><div id="clubTotal">0,00 €</div></div>
+        </div>
+        <div class="big" id="grandTotal">0,00 €</div>
+        <div class="pay">
+          <input id="given" inputmode="decimal" placeholder="Gegeben €" />
+          <div class="change">Rückgeld<br><span id="change">0,00 €</span></div>
+        </div>
+        <div class="actions">
+          <button id="clearCart" class="ghost">Bon leeren</button>
+          <button id="finishSale" class="primary">Bezahlen</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="receipts" class="panel">
+    <div class="card">
+      <div class="section-title">Bons</div>
+      <div id="receiptsList" class="list"></div>
+    </div>
+  </section>
+
+  <section id="stats" class="panel">
+    <div class="kpi">
+      <div class="card"><span class="muted">Aktive Bons</span><strong id="kpiReceipts">0</strong></div>
+      <div class="card"><span class="muted">Gruppenkasse</span><strong id="kpiGroup">0,00 €</strong></div>
+      <div class="card"><span class="muted">Vereinskasse</span><strong id="kpiClub">0,00 €</strong></div>
+      <div class="card"><span class="muted">Gesamt</span><strong id="kpiAll">0,00 €</strong></div>
+    </div>
+    <div class="card">
+      <div class="section-title">Verkäufe nach Artikel</div>
+      <div id="statsList"></div>
+    </div>
+  </section>
+
+  <section id="items" class="panel">
+    <div class="card">
+      <div class="section-title">Artikel verwalten</div>
+      <div class="form-grid">
+        <input id="newName" placeholder="Artikelname" />
+        <input id="newPrice" inputmode="decimal" placeholder="Preis €" />
+        <select id="newBucket"><option value="group">Gruppenkasse</option><option value="club">Vereinskasse</option></select>
+        <button id="addItem" class="primary">Hinzufügen</button>
+      </div>
+      <div id="itemAdmin" style="margin-top:12px"></div>
+    </div>
+  </section>
+
+  <section id="handover" class="panel">
+    <div class="card">
+      <div class="section-title">Dienstübergabe / Datensicherung</div>
+      <div class="backup">
+        <button id="exportData">Übergabedatei erstellen</button>
+        <label>Übergabedatei einlesen<input id="importData" type="file" accept="application/json,.json,.kasse" /></label>
+        <button id="exportCsv">Abrechnung als CSV</button>
+        <button id="resetAll" class="danger">Kasse komplett zurücksetzen</button>
+      </div>
+      <div class="note">Die Übergabedatei bleibt klein: gespeichert werden nur Artikel, Bons und Einstellungen – keine Bilder, keine Bibliotheken. Auch bei vielen Verkäufen am Dienstag bleibt sie in der Regel sehr kompakt.</div>
+    </div>
+  </section>
+  <div class="footer">Offline nutzbar · Daten bleiben auf diesem Gerät · Version 1</div>
+</div>
+<script>
+const KEY='vereinskasse_v1';
+const defaultItems=[
+  {id:'coffee',name:'Kaffee',price:2.00,bucket:'group',active:true},
+  {id:'cake',name:'Kuchen',price:2.50,bucket:'group',active:true},
+  {id:'water',name:'Wasser',price:2.00,bucket:'club',active:true},
+  {id:'cola',name:'Cola',price:2.50,bucket:'club',active:true},
+  {id:'beer',name:'Bier',price:3.00,bucket:'club',active:true}
+];
+let state=load();
+let cart={};
+function load(){try{const x=JSON.parse(localStorage.getItem(KEY));if(x&&x.items&&x.receipts)return x}catch(e){}return {items:defaultItems,receipts:[],nextReceipt:1,createdAt:new Date().toISOString()}}
+function save(){localStorage.setItem(KEY,JSON.stringify(state));renderStatus()}
+function eur(n){return Number(n||0).toLocaleString('de-DE',{style:'currency',currency:'EUR'})}
+function esc(s){return String(s).replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]))}
+function renderStatus(){document.getElementById('statusText').textContent=`${state.receipts.length} Bons gespeichert`}
+function renderItems(){const box=document.getElementById('itemButtons');box.innerHTML='';state.items.filter(i=>i.active).forEach(i=>{const b=document.createElement('button');b.className='item '+i.bucket;b.innerHTML=`${esc(i.name)}<small>${eur(i.price)} · ${i.bucket==='group'?'Gruppe':'Verein'}</small>`;b.onclick=()=>{cart[i.id]=(cart[i.id]||0)+1;renderCart()};box.appendChild(b)})}
+function renderCart(){const box=document.getElementById('cart');box.innerHTML='';let g=0,c=0,all=0;Object.entries(cart).forEach(([id,q])=>{if(q<=0)return;const i=state.items.find(x=>x.id===id);if(!i)return;const sum=i.price*q;all+=sum;i.bucket==='group'?g+=sum:c+=sum;const r=document.createElement('div');r.className='cart-row';r.innerHTML=`<div>${esc(i.name)}<div class="muted">${eur(i.price)}</div></div><div class="qty"><button data-a="-">−</button><b>${q}</b><button data-a="+">+</button></div><div>${eur(sum)}</div>`;r.querySelector('[data-a="-"]').onclick=()=>{cart[id]--;if(cart[id]<=0)delete cart[id];renderCart()};r.querySelector('[data-a="+"]').onclick=()=>{cart[id]++;renderCart()};box.appendChild(r)});if(!Object.keys(cart).length)box.innerHTML='<div class="muted">Noch keine Artikel gewählt.</div>';document.getElementById('groupTotal').textContent=eur(g);document.getElementById('clubTotal').textContent=eur(c);document.getElementById('grandTotal').textContent=eur(all);calcChange()}
+function calcChange(){const total=getCartTotal();const raw=document.getElementById('given').value.replace(',','.');const given=parseFloat(raw)||0;document.getElementById('change').textContent=eur(Math.max(0,given-total))}
+function getCartTotal(){return Object.entries(cart).reduce((s,[id,q])=>{const i=state.items.find(x=>x.id===id);return s+(i?i.price*q:0)},0)}
+function finishSale(){const entries=Object.entries(cart).filter(([,q])=>q>0);if(!entries.length)return alert('Der Bon ist leer.');const items=entries.map(([id,q])=>{const i=state.items.find(x=>x.id===id);return {id,name:i.name,price:i.price,bucket:i.bucket,qty:q}});const total=items.reduce((s,i)=>s+i.price*i.qty,0);const given=parseFloat(document.getElementById('given').value.replace(',','.'))||0;if(given>0&&given<total)return alert('Der gegebene Betrag ist kleiner als die Summe.');state.receipts.push({no:state.nextReceipt++,ts:new Date().toISOString(),items,total,voided:false});save();cart={};document.getElementById('given').value='';renderAll();alert('Verkauf gespeichert.');}
+function renderReceipts(){const box=document.getElementById('receiptsList');box.innerHTML='';[...state.receipts].reverse().forEach(r=>{const d=document.createElement('div');d.className='receipt'+(r.voided?' storno':'');const parts=r.items.map(i=>`${i.qty}× ${esc(i.name)} (${eur(i.price*i.qty)})`).join('<br>');d.innerHTML=`<div class="receipt-head"><strong>Bon ${r.no}</strong><span>${new Date(r.ts).toLocaleString('de-DE')}</span></div><div class="muted">${parts}</div><div style="margin-top:6px"><strong>${eur(r.total)}</strong> ${r.voided?'<span class="pill">STORNIERT</span>':''}</div><div class="receipt-actions"></div>`;const a=d.querySelector('.receipt-actions');if(!r.voided){const b=document.createElement('button');b.className='danger';b.textContent='Bon stornieren';b.onclick=()=>{if(confirm(`Bon ${r.no} wirklich stornieren?`)){r.voided=true;r.voidedAt=new Date().toISOString();save();renderAll()}};a.appendChild(b)}box.appendChild(d)});if(!state.receipts.length)box.innerHTML='<div class="muted">Noch keine Bons vorhanden.</div>'}
+function calcStats(){const map={};let group=0,club=0,count=0;state.receipts.filter(r=>!r.voided).forEach(r=>{count++;r.items.forEach(i=>{const k=i.id+'|'+i.name+'|'+i.bucket+'|'+i.price;if(!map[k])map[k]={name:i.name,bucket:i.bucket,qty:0,sum:0};map[k].qty+=i.qty;map[k].sum+=i.qty*i.price;i.bucket==='group'?group+=i.qty*i.price:club+=i.qty*i.price})});return {map:Object.values(map),group,club,count}}
+function renderStats(){const s=calcStats();document.getElementById('kpiReceipts').textContent=s.count;document.getElementById('kpiGroup').textContent=eur(s.group);document.getElementById('kpiClub').textContent=eur(s.club);document.getElementById('kpiAll').textContent=eur(s.group+s.club);const box=document.getElementById('statsList');box.innerHTML='';s.map.sort((a,b)=>b.qty-a.qty).forEach(x=>{const d=document.createElement('div');d.className='stat-row';d.innerHTML=`<div>${esc(x.name)} <span class="pill ${x.bucket}">${x.bucket==='group'?'Gruppe':'Verein'}</span></div><strong>${x.qty}×</strong><div>${eur(x.sum)}</div>`;box.appendChild(d)});if(!s.map.length)box.innerHTML='<div class="muted">Noch keine Verkäufe.</div>'}
+function renderAdmin(){const box=document.getElementById('itemAdmin');box.innerHTML='';state.items.forEach(i=>{const d=document.createElement('div');d.className='receipt-row';d.innerHTML=`<div><strong>${esc(i.name)}</strong><div class="muted">${eur(i.price)} · ${i.bucket==='group'?'Gruppenkasse':'Vereinskasse'} · ${i.active?'aktiv':'deaktiviert'}</div></div><button class="ghost">${i.active?'Deaktivieren':'Aktivieren'}</button><button class="danger">Löschen</button>`;const [toggle,del]=d.querySelectorAll('button');toggle.onclick=()=>{i.active=!i.active;save();renderAll()};del.onclick=()=>{const used=state.receipts.some(r=>r.items.some(x=>x.id===i.id));if(used)return alert('Dieser Artikel wurde bereits verkauft und kann deshalb nicht gelöscht werden. Bitte deaktivieren.');if(confirm('Artikel wirklich löschen?')){state.items=state.items.filter(x=>x.id!==i.id);save();renderAll()}};box.appendChild(d)})}
+function addItem(){const name=document.getElementById('newName').value.trim();const price=parseFloat(document.getElementById('newPrice').value.replace(',','.'));const bucket=document.getElementById('newBucket').value;if(!name||!(price>=0))return alert('Bitte Name und gültigen Preis eingeben.');state.items.push({id:'i'+Date.now().toString(36),name,price,bucket,active:true});document.getElementById('newName').value='';document.getElementById('newPrice').value='';save();renderAll()}
+function exportData(){const data={version:1,exportedAt:new Date().toISOString(),state};const blob=new Blob([JSON.stringify(data)],{type:'application/json'});download(blob,`vereinskasse_${new Date().toISOString().slice(0,10)}.kasse`)}
+function importData(file){const rd=new FileReader();rd.onload=()=>{try{const data=JSON.parse(rd.result);const s=data.state||data;if(!s.items||!s.receipts)throw 0;if(!confirm(`Daten übernehmen? Aktuelle lokale Kasse wird ersetzt.\nBons in Datei: ${s.receipts.length}`))return;state=s;save();cart={};renderAll();alert('Übergabe übernommen.')}catch(e){alert('Datei konnte nicht gelesen werden.')}};rd.readAsText(file)}
+function exportCsv(){const rows=[['Bon','Datum','Artikel','Menge','Einzelpreis','Kasse','Summe','Status']];state.receipts.forEach(r=>r.items.forEach(i=>rows.push([r.no,new Date(r.ts).toLocaleString('de-DE'),i.name,i.qty,i.price.toFixed(2).replace('.',','),i.bucket==='group'?'Gruppe':'Verein',(i.qty*i.price).toFixed(2).replace('.',','),r.voided?'STORNIERT':'OK'])));const csv=rows.map(row=>row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\n');download(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),`abrechnung_${new Date().toISOString().slice(0,10)}.csv`)}
+function download(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function resetAll(){if(confirm('Wirklich ALLE Bons, Artikel und Einstellungen auf diesem Gerät löschen?')&&confirm('Diese Aktion kann nicht rückgängig gemacht werden. Fortfahren?')){localStorage.removeItem(KEY);state={items:JSON.parse(JSON.stringify(defaultItems)),receipts:[],nextReceipt:1,createdAt:new Date().toISOString()};cart={};save();renderAll()}}
+function renderAll(){renderStatus();renderItems();renderCart();renderReceipts();renderStats();renderAdmin()}
+document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById(b.dataset.tab).classList.add('active');renderAll()});
+document.getElementById('given').addEventListener('input',calcChange);document.getElementById('clearCart').onclick=()=>{if(Object.keys(cart).length&&!confirm('Aktuellen Bon leeren?'))return;cart={};renderCart()};document.getElementById('finishSale').onclick=finishSale;document.getElementById('addItem').onclick=addItem;document.getElementById('exportData').onclick=exportData;document.getElementById('importData').onchange=e=>{if(e.target.files[0])importData(e.target.files[0]);e.target.value=''};document.getElementById('exportCsv').onclick=exportCsv;document.getElementById('resetAll').onclick=resetAll;
+renderAll();
+</script>
+</body>
+</html>
